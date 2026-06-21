@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<!--
+  Static UI preview of the Webview app.
+
+  This is a non-functional mockup for visual review only: it reuses the real
+  chrome and styles but replaces the <webview> guest with a static page render
+  and fills the activity log / add-ons with example content. Open in any browser.
+  The actual app runs with `npm install && npm start`.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Webview — Preview</title>
+    <style>
+      :root {
+        --bg: #1e1e2e;
+        --bg-alt: #27293d;
+        --border: #383a59;
+        --text: #cdd6f4;
+        --muted: #9399b2;
+        --accent: #89b4fa;
+        --success: #a6e3a1;
+        --error: #f38ba8;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0; height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg); color: var(--text); overflow: hidden;
+      }
+      #toolbar {
+        display: flex; align-items: center; gap: 6px;
+        padding: 8px 10px; background: var(--bg-alt);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav-btn {
+        width: 30px; height: 30px; border: none; border-radius: 6px;
+        background: var(--bg); color: var(--text); font-size: 18px; cursor: pointer;
+      }
+      .nav-btn:hover { background: var(--border); }
+      #address {
+        flex: 1; height: 32px; padding: 0 12px;
+        border: 1px solid var(--border); border-radius: 8px;
+        background: var(--bg); color: var(--text); font-size: 14px; outline: none;
+      }
+      .go-btn {
+        height: 32px; padding: 0 16px; border: none; border-radius: 8px;
+        background: var(--accent); color: #1e1e2e; font-weight: 600; cursor: pointer;
+      }
+      .status { min-width: 80px; font-size: 12px; color: var(--success); }
+      #body { display: flex; height: calc(100% - 49px); }
+      #stage { flex: 1; position: relative; background: #fff; overflow: hidden; }
+
+      /* Mock rendered "connected site" in place of the live <webview> */
+      .mock-site {
+        position: absolute; inset: 0; color: #202124;
+        font-family: Arial, sans-serif; padding: 60px 80px;
+      }
+      .mock-site .brand { color: var(--accent); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+      .mock-site h1 { font-size: 34px; margin: 10px 0 6px; }
+      .mock-site p { color: #5f6368; max-width: 560px; line-height: 1.6; }
+      .mock-search {
+        display: flex; gap: 8px; margin-top: 22px; max-width: 520px;
+      }
+      .mock-search input {
+        flex: 1; height: 40px; padding: 0 14px; font-size: 15px;
+        border: 1px solid #dadce0; border-radius: 24px; outline: none;
+      }
+      .mock-search input.focused { border-color: var(--accent); box-shadow: 0 1px 6px rgba(137,180,250,.4); }
+      .mock-search button { height: 40px; padding: 0 20px; border: none; border-radius: 24px; background: #202124; color: #fff; cursor: pointer; }
+      .mock-links { margin-top: 34px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px; max-width: 620px; }
+      .mock-links a { color: #1a73e8; text-decoration: none; font-size: 14px; }
+      .tag { display:inline-block; margin-top:30px; padding:4px 10px; background:#e8f0fe; color:#1967d2; border-radius:6px; font-size:12px;}
+
+      #sidebar {
+        width: 320px; flex-shrink: 0; border-left: 1px solid var(--border);
+        background: var(--bg-alt); padding: 14px; overflow-y: auto;
+      }
+      #sidebar h2 {
+        font-size: 13px; text-transform: uppercase; letter-spacing: .06em;
+        color: var(--muted); margin: 18px 0 8px;
+      }
+      #sidebar h2:first-child { margin-top: 0; }
+      .addon {
+        background: var(--bg); border: 1px solid var(--border);
+        border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;
+      }
+      .addon .addon-name { font-weight: 600; font-size: 14px; }
+      .addon .addon-desc { font-size: 12px; color: var(--muted); margin: 4px 0 8px; line-height: 1.4; }
+      .addon input {
+        width: 100%; height: 30px; padding: 0 10px; margin-bottom: 8px;
+        border: 1px solid var(--border); border-radius: 6px;
+        background: var(--bg-alt); color: var(--text); font-size: 13px; outline: none;
+      }
+      .addon input.focused { border-color: var(--accent); }
+      .addon button {
+        width: 100%; height: 30px; border: none; border-radius: 6px;
+        background: var(--accent); color: #1e1e2e; font-weight: 600; cursor: pointer;
+      }
+      #log {
+        font-family: "SF Mono", ui-monospace, "Cascadia Code", Menlo, monospace;
+        font-size: 11.5px; line-height: 1.5; background: var(--bg);
+        border: 1px solid var(--border); border-radius: 8px; padding: 8px;
+        max-height: 320px; overflow-y: auto; white-space: pre-wrap; word-break: break-word;
+      }
+      .log-line { color: var(--muted); }
+      .log-line.success { color: var(--success); }
+      .log-line .ts { color: var(--border); margin-right: 6px; }
+      .clear-btn {
+        margin-top: 8px; height: 26px; padding: 0 12px; border: 1px solid var(--border);
+        border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px;
+      }
+      .preview-banner {
+        position: fixed; bottom: 12px; left: 12px; z-index: 10;
+        background: rgba(39,41,61,.92); border: 1px solid var(--border);
+        color: var(--muted); font-size: 11px; padding: 6px 10px; border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="toolbar">
+      <button class="nav-btn" title="Back">‹</button>
+      <button class="nav-btn" title="Forward">›</button>
+      <button class="nav-btn" title="Reload">⟳</button>
+      <input id="address" type="text" value="https://example.com" spellcheck="false" />
+      <button class="go-btn">Connect</button>
+      <span class="status">Ready</span>
+    </header>
+
+    <div id="body">
+      <main id="stage">
+        <!-- Stand-in for the live <webview> guest -->
+        <div class="mock-site">
+          <div class="brand">Connected site</div>
+          <h1>Example Platform</h1>
+          <p>This panel is the embedded <code>&lt;webview&gt;</code> in the real app — any
+             website or platform you connect to renders here, fully interactive and
+             automatable by add-ons.</p>
+          <div class="mock-search">
+            <input class="focused" type="search" name="q" value="hello world" />
+            <button>Search</button>
+          </div>
+          <div class="mock-links">
+            <a href="#">Dashboard</a><a href="#">Pricing</a>
+            <a href="#">Sign in</a><a href="#">Documentation</a>
+            <a href="#">Account settings</a><a href="#">Contact sales</a>
+          </div>
+          <span class="tag">Hermes just filled the search box ✓</span>
+        </div>
+      </main>
+
+      <aside id="sidebar">
+        <h2>Add-ons</h2>
+
+        <div class="addon">
+          <div class="addon-name">Hermes</div>
+          <div class="addon-desc">Automated actions on the loaded site. Try "search: hello",
+            "click: a.signup", "read: h1", or leave blank for a page summary.</div>
+          <input class="focused" type="text" value="search: hello world" />
+          <button>Run Hermes</button>
+        </div>
+
+        <div class="addon">
+          <div class="addon-name">Link Extractor</div>
+          <div class="addon-desc">List all hyperlinks on the current page.</div>
+          <input type="text" placeholder="(optional) filter substring" />
+          <button>Run Link Extractor</button>
+        </div>
+
+        <h2>Activity</h2>
+        <div id="log">
+          <div class="log-line success"><span class="ts">10:42:01</span>Webview ready. Connect to a site, then run an add-on.</div>
+          <div class="log-line"><span class="ts">10:42:09</span>Connecting to https://example.com</div>
+          <div class="log-line"><span class="ts">10:42:10</span>▶ Running Hermes…</div>
+          <div class="log-line"><span class="ts">10:42:10</span>Hermes: searching for "hello world"</div>
+          <div class="log-line"><span class="ts">10:42:10</span>fill → input[name="q"] = "hello world"</div>
+          <div class="log-line success"><span class="ts">10:42:10</span>Hermes: submitted search via "input[name=&quot;q&quot;]"</div>
+          <div class="log-line success"><span class="ts">10:42:10</span>✓ Hermes finished</div>
+        </div>
+        <button class="clear-btn">Clear</button>
+      </aside>
+    </div>
+
+    <div class="preview-banner">Static UI preview · run the real app with <code>npm start</code></div>
+  </body>
+</html>

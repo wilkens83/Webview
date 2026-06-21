@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    />
+    <title>Webview</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Top bar: navigation + address bar -->
+    <header id="toolbar">
+      <button id="back" class="nav-btn" title="Back">‹</button>
+      <button id="forward" class="nav-btn" title="Forward">›</button>
+      <button id="reload" class="nav-btn" title="Reload">⟳</button>
+      <input
+        id="address"
+        type="text"
+        placeholder="Enter a URL or search term and press Enter"
+        spellcheck="false"
+      />
+      <button id="go" class="go-btn">Connect</button>
+      <span id="status" class="status"></span>
+    </header>
+
+    <div id="body">
+      <!-- The connected website lives here -->
+      <main id="stage">
+        <webview
+          id="guest"
+          src="about:blank"
+          allowpopups
+        ></webview>
+      </main>
+
+      <!-- Add-on sidebar -->
+      <aside id="sidebar">
+        <h2>Add-ons</h2>
+        <div id="addon-list"></div>
+
+        <h2>Activity</h2>
+        <div id="log" aria-live="polite"></div>
+        <button id="clear-log" class="clear-btn">Clear</button>
+      </aside>
+    </div>
+
+    <script type="module" src="renderer.js"></script>
+  </body>
+</html>
