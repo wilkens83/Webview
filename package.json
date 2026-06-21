@@ -1,0 +1,22 @@
+{
+  "name": "webview",
+  "version": "0.1.0",
+  "description": "An Electron webview shell that can connect to any website, with a JS-injection add-on API so add-ons like Hermes can perform automated actions.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --enable-logging"
+  },
+  "keywords": [
+    "electron",
+    "webview",
+    "automation",
+    "addons",
+    "hermes"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}
